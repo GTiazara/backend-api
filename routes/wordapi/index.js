@@ -10,8 +10,8 @@ let collection = null;
 // Attempt to connect and ensure collection exists. Do not throw on failure — just log.
 (async () => {
   try {
-    const validatorPath = path.join(__dirname, '..', '..', 'db', 'validators', 'word_class.json');
-    const { db, collection: coll } = await connectToDb('worddb', 'word_class', { validatorFilePath: validatorPath });
+    validationObject = require('../../db/validators/word_class.json')
+    const { db, collection: coll } = await connectToDb('worddb', 'word_class', { validationObject: validationObject });
 
     collection = coll;
 
@@ -31,7 +31,7 @@ let collection = null;
 
 // GET /wordapi/categories - list all categories
 router.get('/categories', async (req, res) => {
-  if (!collection) return res.status(503).json({ error: 'DB not ready' + process.env.ATLAS_URI });
+  if (!collection) return res.status(503).json({ error: 'DB not ready' });
   try {
     const now = new Date();
 
