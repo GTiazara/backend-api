@@ -97,46 +97,37 @@ router.get('/categories', async (req, res) => {
   if (isNaN(limit) || limit < 1 || limit > 1000) limit = 100;
 
   try {
-    // Serve categories immediately
+    const now = new Date();
+    const count = await collection.countDocuments();
+    const latest = await collection.find({}).sort({ createdAt: -1 }).limit(1).toArray();
+    const lastCreatedAt = latest[0]?.createdAt || null;
+
+    const oneDayMs = 24*60*60*1000;
+
+    // If DB has >1000 docs, remove 100 randomly, then add 100 new
+    if (count > 1000) {
+      const toRemove = await collection.aggregate([{ $sample: { size: 100 } }, { $project: { _id: 1 } }]).toArray();
+      const idsToRemove = toRemove.map(d => d._id);
+      if (idsToRemove.length) await collection.deleteMany({ _id: { $in: idsToRemove } });
+      const newCats = await generateCategories(100);
+      try { await collection.insertMany(newCats, { ordered: false }); } catch(e){ console.warn('Insert after prune errors:', e.message || e); }
+    }
+
+    // Add 100 categories if DB empty or last update > 1 day
+    if (!lastCreatedAt || (now - new Date(lastCreatedAt) >= oneDayMs)) {
+      const newCats = await generateCategories(100);
+      try { await collection.insertMany(newCats, { ordered: false }); } catch(e){ console.warn('Insert errors:', e.message || e); }
+    }
+
+    // Return categories (limit applied)
     const docs = await collection.find({}).sort({ createdAt: -1 }).limit(limit).toArray();
     res.json(docs);
-
-    // Async background updates (fire-and-forget)
-    (async () => {
-      try {
-        const now = new Date();
-        const count = await collection.countDocuments();
-        const latest = await collection.find({}).sort({ createdAt: -1 }).limit(1).toArray();
-        const lastCreatedAt = latest[0]?.createdAt || null;
-        const oneDayMs = 24*60*60*1000;
-
-        // Prune if >1000 docs
-        if (count > 1000) {
-          const toRemove = await collection.aggregate([{ $sample: { size: 100 } }, { $project: { _id: 1 } }]).toArray();
-          const idsToRemove = toRemove.map(d => d._id);
-          if (idsToRemove.length) await collection.deleteMany({ _id: { $in: idsToRemove } });
-
-          const newCats = await generateCategories(100);
-          await collection.insertMany(newCats, { ordered: false }).catch(e => console.warn('Insert after prune errors:', e.message || e));
-        }
-
-        // Add 100 categories if empty or last update > 1 day
-        if (!lastCreatedAt || (now - new Date(lastCreatedAt) >= oneDayMs)) {
-          const newCats = await generateCategories(100);
-          await collection.insertMany(newCats, { ordered: false }).catch(e => console.warn('Insert errors:', e.message || e));
-        }
-
-      } catch (asyncErr) {
-        console.warn('Background category update failed:', asyncErr.message || asyncErr);
-      }
-    })();
 
   } catch (err) {
     console.error('GET /categories error:', err);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // POST /categories
 router.post('/categories', express.json(), async (req, res) => {
