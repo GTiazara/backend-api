@@ -1,0 +1,47 @@
+{
+  "$jsonSchema": {
+    "bsonType": "object",
+    "required": ["geometry", "properties"],
+    "properties": {
+      "geometry": {
+        "bsonType": "object",
+        "required": ["type", "coordinates"],
+        "properties": {
+          "type": {
+            "enum": ["Point"],
+            "description": "Location type must be 'Point'."
+          },
+          "coordinates": {
+            "bsonType": "array",
+            "items": { "bsonType": "double" },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "Coordinates must be an array of [longitude, latitude] as doubles."
+          }
+        }
+      },
+      "properties": {
+        "bsonType": "object",
+        "required": ["tags", "startDate", "endDate", "startTime", "endTime"],
+        "properties": {
+          "tags": {
+            "bsonType": "array",
+            "items": { "bsonType": "string" },
+            "description": "Tags for the event must be an array of strings."
+          },
+          "startDate": { "bsonType": "string", "description": "The start date must be a string in 'YYYY-MM-DD' format." },
+          "endDate": { "bsonType": "string", "description": "The end date must be a string in 'YYYY-MM-DD' format." },
+          "startTime": { "bsonType": "string", "description": "The start time must be a string in 'HH:mm' format." },
+          "endTime": { "bsonType": "string", "description": "The end time must be a string in 'HH:mm' format." },
+          "description": { "bsonType": "string", "description": "Description of the event (optional)." },
+          "participants": { "bsonType": "object", "description": "List of participants (optional)." },
+          "eventImage": { "bsonType": "string", "description": "Image." },
+          "infoSource": { "bsonType": "string", "description": "Source." },
+          "createdAt": { "bsonType": "date", "description": "Creation date of the event. Will be set on insert." },
+          "eventVideo": { "bsonType": "string", "description": "video" },
+          "eventChat": { "bsonType": "object", "description": "chat" }
+        }
+      }
+    }
+  }
+}
