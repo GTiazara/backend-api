@@ -31,7 +31,7 @@ let collection = null;
 
 // GET /wordapi/categories - list all categories
 router.get('/categories', async (req, res) => {
-  if (!collection) return res.status(503).json({ error: 'DB not ready' });
+  if (!collection) return res.status(503).json({ error: 'DB not ready' + process.env.ATLAS_URI });
   try {
     const now = new Date();
 
