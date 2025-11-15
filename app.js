@@ -1,11 +1,3 @@
-// Source - https://stackoverflow.com/a
-// Posted by Bobby Zhou, modified by community. See post 'Timeline' for change history
-// Retrieved 2025-11-15, License - CC BY-SA 4.0
-
-// index.js
-// require("./bin/www");
-
-
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
